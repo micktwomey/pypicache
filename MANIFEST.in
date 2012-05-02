@@ -1,0 +1,4 @@
+include *.rst *.txt *.py
+include Makefile LICENSE requirements.txt
+include MANIFEST.in
+recursive-include pypicache *.html *.py *.css *.js *.png *.jpg

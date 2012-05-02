@@ -1,0 +1,2 @@
+bottle==0.10.7
+requests==0.10.6
