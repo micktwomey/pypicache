@@ -1,2 +1,2 @@
-bottle==0.10.7
-requests==0.10.6
+bottle==0.10.9
+requests==0.11.2
