@@ -1,5 +1,6 @@
 import logging
 import mimetypes
+import os
 import re
 
 import bottle
@@ -7,20 +8,29 @@ import bottle
 from pypicache import cache
 
 CACHE = None
+# Not sure this is the best place to do this
+bottle.TEMPLATE_PATH.append(os.path.join(os.path.dirname(__file__), "templates"))
 
 app = bottle.Bottle()
 
 @app.route("/")
+@bottle.jinja2_view("index")
 def index():
-    return "Index not baked yet, try /simple/<package>/"
+    return {}
+
+@app.route('/static/<path:path>')
+def callback(path):
+    root = os.path.join(os.path.dirname(__file__), "static")
+    return bottle.static_file(path, root=root)
 
 @app.route("/simple")
 @app.route("/simple/")
+@bottle.jinja2_view("simple")
 def simple_index():
     """The top level simple index page
 
     """
-    return "Not done yet, try /simple/<package>"
+    return {}
 
 @app.route("/simple/<package>")
 @app.route("/simple/<package>/")

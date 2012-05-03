@@ -13,7 +13,7 @@ init:
 	pip install -r requirements-develop.txt --use-mirrors
 
 test:
-	PYTHONPATH=. python -m unittest discover -s tests
+	PYTHONPATH=. py.test --verbose --tb=short
 
 coverage:
 	PYTHONPATH=. coverage run -m unittest discover -s tests
@@ -24,7 +24,7 @@ docs:
 	cd docs ; make html
 
 runserver:
-	PYTHONPATH=. python -m pypicache.main /tmp/pypicache
+	PYTHONPATH=. python -m pypicache.main --debug --reload /tmp/pypicache
 
 push:
 	git push origin

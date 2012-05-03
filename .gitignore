@@ -2,3 +2,5 @@
 build
 dist
 .coverage
+*.sublime-project
+*.sublime-workspace

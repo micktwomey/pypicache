@@ -1,8 +1,10 @@
 import argparse
 import logging
+import os
 
 import bottle
 
+import pypicache
 from pypicache import cache
 from pypicache import server
 
@@ -31,7 +33,7 @@ def main():
     logging.info("Server: {!r}".format(args.server))
 
     server.CACHE = cache.PackageCache(args.prefix)
-
+    bottle.debug(args.debug)
     bottle.run(server.app, port=args.port, host=args.address, reloader=args.reload, server=args.server)
 
 if __name__ == '__main__':
