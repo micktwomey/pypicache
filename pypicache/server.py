@@ -52,7 +52,7 @@ def get_sdist(firstletter, package, filename):
         bottle.response.content_type = content_type
         return app.config["pypi"].get_sdist(package, filename)
     except cache.NotFound:
-        return bottle.NotFound()
+        return bottle.abort(404)
 
 @app.route("/packages/source/<firstletter>/<package>/<filename>", "PUT")
 def put_sdist(firstletter, package, filename):
