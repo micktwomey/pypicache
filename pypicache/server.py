@@ -7,11 +7,13 @@ import bottle
 
 from pypicache import cache
 
-CACHE = None
-# Not sure this is the best place to do this
-bottle.TEMPLATE_PATH.append(os.path.join(os.path.dirname(__file__), "templates"))
-
 app = bottle.Bottle()
+
+def make_app(package_cache):
+    app.config["pypi"] = package_cache
+    # Not 100% sure this is the best way to handle this.
+    bottle.TEMPLATE_PATH.append(os.path.join(os.path.dirname(__file__), "templates"))
+    return app
 
 @app.route("/")
 @bottle.jinja2_view("index")
@@ -35,12 +37,12 @@ def simple_index():
 @app.route("/simple/<package>")
 @app.route("/simple/<package>/")
 def pypi_simple_package_info(package):
-    return CACHE.pypi_get_simple_package_info(package)
+    return app.config["pypi"].pypi_get_simple_package_info(package)
 
 @app.route("/local/<package>")
 @app.route("/local/<package>/")
 def local_simple_package_info(package):
-    return CACHE.local_get_simple_package_info(package)
+    return app.config["pypi"].local_get_simple_package_info(package)
 
 @app.route("/packages/source/<firstletter>/<package>/<filename>", "GET")
 def get_sdist(firstletter, package, filename):
@@ -48,7 +50,7 @@ def get_sdist(firstletter, package, filename):
         content_type, _ = mimetypes.guess_type(filename)
         logging.debug("Setting mime type of {!r} to {!r}".format(filename, content_type))
         bottle.response.content_type = content_type
-        return CACHE.get_sdist(package, filename)
+        return app.config["pypi"].get_sdist(package, filename)
     except cache.NotFound:
         return bottle.NotFound()
 
@@ -61,7 +63,7 @@ def put_sdist(firstletter, package, filename):
     curl -X PUT --data-binary @dist/mypackage-1.0.tar.gz http://localhost:8080/packages/source/m/mypackage/mypackage-1.0.tar.gz
 
     """
-    CACHE.add_sdist(package, filename, bottle.request.body)
+    app.config["pypi"].add_sdist(package, filename, bottle.request.body)
     return {"uploaded": "ok"}
 
 @app.route("/uploadpackage/<filename>", "POST")
@@ -77,7 +79,7 @@ def post_sdist(filename):
     # Assume package in form <package>-<version>.tar.gz
     package = re.match(r"(?P<package>.*?)-.*?\..*", filename).groupdict()["package"]
     logging.debug("Parsed {!r} out of {!r}".format(package, filename))
-    return CACHE.add_sdist(package, filename, bottle.request.body)
+    return app.config["pypi"].add_sdist(package, filename, bottle.request.body)
 
 @app.route("/requirements.txt", "POST")
 def POST_requirements_txt():
@@ -92,4 +94,4 @@ def POST_requirements_txt():
     curl -X POST --data-binary @/tmp/requirements.txt http://localhost:8080/requirements.txt | python -m json.tool
 
     """
-    return CACHE.cache_requirements_txt(bottle.request.body)
+    return app.config["pypi"].cache_requirements_txt(bottle.request.body)

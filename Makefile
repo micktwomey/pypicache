@@ -16,7 +16,7 @@ test:
 	PYTHONPATH=. py.test --verbose --tb=short
 
 coverage:
-	PYTHONPATH=. coverage run -m unittest discover -s tests
+	PYTHONPATH=. coverage run -m py.test --verbose --tb=short
 	coverage report --include 'pypicache*'
 	coverage html --include 'pypicache*' -d build/coverage
 
