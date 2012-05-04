@@ -12,10 +12,10 @@ help:
 init:
 	pip install -r requirements-develop.txt --use-mirrors
 
+# This is really weird, py.test adds bin/ to the pythonpath which causes
+# python 3 to fail, as bottle.py (the command line tool) isn't python 3
+# compatible (mind you, it'd fail anyway if it was importing a script).
 test:
-	# This is really weird, py.test adds bin/ to the pythonpath which causes
-	# python 3 to fail, as bottle.py (the command line tool) isn't python 3
-	# compatible (mind you, it'd fail anyway if it was importing a script).
 	PYTHONPATH=. python -m py.test --verbose --tb=short
 
 coverage:
