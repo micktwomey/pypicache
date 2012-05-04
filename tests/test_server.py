@@ -14,14 +14,14 @@ class ServerTestCase(unittest.TestCase):
 
     def test_index(self):
         response = self.app.get("/")
-        self.assertIn("PyPI Cache", response.body)
+        self.assertIn(b"PyPI Cache", response.body)
 
     def test_static(self):
         self.app.get("/static/css/bootstrap.css")
 
     def test_simple(self):
         response = self.app.get("/simple")
-        self.assertIn("simple", response.body)
+        self.assertIn(b"simple", response.body)
 
     def test_simple_package(self):
         self.mock_packagecache.pypi_get_simple_package_info.return_value = """<html><a href="mypackage">mypackage-1.0</a></html>"""
@@ -39,7 +39,7 @@ class ServerTestCase(unittest.TestCase):
         self.mock_packagecache.get_sdist.return_value = "--package-data--"
         response = self.app.get("/packages/source/m/mypackage/mypackage-1.0.tar.gz")
         self.assertEqual("application/x-tar", response.headers["Content-Type"])
-        self.assertEqual("--package-data--", response.body)
+        self.assertEqual(b"--package-data--", response.body)
         self.mock_packagecache.get_sdist.assert_called_with("mypackage", "mypackage-1.0.tar.gz")
 
     def test_packages_source_notfound(self):

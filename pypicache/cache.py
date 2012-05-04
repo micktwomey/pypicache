@@ -2,7 +2,11 @@ import hashlib
 import json
 import logging
 import os
-import xmlrpclib
+
+try:
+    import xmlrpc.client as xmlrpclib
+except ImportError:
+    import xmlrpclib
 
 import requests
 
