@@ -70,6 +70,32 @@ or::
 
     curl -X POST --data-binary @dist/mypackage-1.0.tar.gz http://localhost:8080/uploadpackage/mypackage-1.0.tar.gz
 
+URLs
+----
+
+An enumeration of the current api:
+
+- GET /
+
+- GET /simple/mypackage
+
+- GET /local/mypackage
+   - Currently case sensitive
+
+- POST /uploadpackage/mypackage-1.0.tar.gz
+  - Applies simple logic to parse package name
+  - Can't overwrite packages
+
+- GET /packages/source/m/mypackage/mypackage-1.0.tar.gz
+  - Checks PyPI if not present locally
+- PUT /packages/source/m/mypackage/mypackage-1.0.tar.gz
+  - Can't overwrite packages
+
+- GET /packages/2.7/m/mypackage/mypackage-1.0-py2.7.egg
+  - not implemented
+- PUT /packages/2.7/m/mypackage/mypackage-1.0-py2.7.egg
+  - not implemented
+
 ..
     Contents:
 
