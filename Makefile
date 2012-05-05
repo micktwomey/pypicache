@@ -1,4 +1,4 @@
-.PHONY: help init test coverage runserver docs push
+.PHONY: help init test coverage runserver docs push dist
 
 help:
 	@echo "make commands:"
@@ -15,6 +15,7 @@ init:
 # This is really weird, py.test adds bin/ to the pythonpath which causes
 # python 3 to fail, as bottle.py (the command line tool) isn't python 3
 # compatible (mind you, it'd fail anyway if it was importing a script).
+# Can work around this by using python -m instead.
 test:
 	PYTHONPATH=. python -m py.test --verbose --tb=short
 
@@ -32,3 +33,6 @@ runserver:
 push:
 	git push origin
 	git push github master
+
+dist:
+	python setup.py sdist
