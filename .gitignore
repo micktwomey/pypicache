@@ -1,6 +1,7 @@
 *.pyc
-build
-dist
-.coverage
 *.sublime-project
 *.sublime-workspace
+.coverage
+build
+dist
+MANIFEST
