@@ -9,8 +9,8 @@ from pypicache import server
 
 class ServerTestCase(unittest.TestCase):
     def setUp(self):
-        self.mock_packagecache = mock.Mock()
-        self.app = TestApp(server.make_app(self.mock_packagecache))
+        self.mock_packagecache = mock.Mock(spec=cache.PackageCache)
+        self.app = TestApp(server.make_app(self.mock_packagecache, ))
 
     def test_index(self):
         response = self.app.get("/")
@@ -40,6 +40,7 @@ class ServerTestCase(unittest.TestCase):
         response = self.app.get("/packages/source/m/mypackage/mypackage-1.0.tar.gz")
         self.assertEqual("application/x-tar", response.headers["Content-Type"])
         self.assertEqual(b"--package-data--", response.body)
+
         self.mock_packagecache.get_sdist.assert_called_with("mypackage", "mypackage-1.0.tar.gz")
 
     def test_packages_source_notfound(self):
@@ -48,3 +49,30 @@ class ServerTestCase(unittest.TestCase):
         self.mock_packagecache.get_sdist.side_effect = fail
         self.app.get("/packages/source/m/mypackage/mypackage-1.1.tar.gz", status=404)
         self.mock_packagecache.get_sdist.assert_called_with("mypackage", "mypackage-1.1.tar.gz")
+
+    def test_put_packages_source_sdist(self):
+        response = self.app.put("/packages/source/m/mypackage/mypackage-1.0.tar.gz", "--package-data--")
+        self.assertDictEqual(response.json, {"uploaded": "ok"})
+        self.assertTrue(self.mock_packagecache.add_sdist.called)
+        args, kwargs = self.mock_packagecache.add_sdist.call_args
+        self.assertEqual(args[:2], ("mypackage", "mypackage-1.0.tar.gz"))
+        self.assertEqual(args[2].getvalue(), "--package-data--")
+
+    def test_post_sdist(self):
+        response = self.app.post("/uploadpackage/",
+            upload_files=[("sdist", "mypackage-1.0.tar.gz", "--package-data--")]
+        )
+        self.assertDictEqual(response.json, {"uploaded": "ok"})
+        self.assertTrue(self.mock_packagecache.add_sdist.called)
+        args, kwargs = self.mock_packagecache.add_sdist.call_args
+        self.assertEqual(args[:2], ("mypackage", "mypackage-1.0.tar.gz"))
+        self.assertEqual(args[2].getvalue(), "--package-data--")
+
+    def test_post_requirements_txt(self):
+        self.mock_packagecache.cache_requirements_txt.return_value = {"processed": "requirements"}
+        response = self.app.post("/requirements.txt",
+            upload_files=[("requirements", "requirements.txt", "mypackage==1.0")]
+        )
+        self.assertDictEqual(response.json, {"processed": "requirements"})
+        args, kwargs = self.mock_packagecache.cache_requirements_txt.call_args
+        self.assertEqual(args[0].getvalue(), "mypackage==1.0")

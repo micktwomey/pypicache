@@ -7,7 +7,8 @@ import bottle
 
 from pypicache import cache
 
-app = bottle.Bottle()
+# For the moment you have to set catchall to False to debug test failures.
+app = bottle.Bottle(catchall=True)
 
 def make_app(package_cache):
     app.config["pypi"] = package_cache
@@ -56,42 +57,28 @@ def get_sdist(firstletter, package, filename):
 
 @app.route("/packages/source/<firstletter>/<package>/<filename>", "PUT")
 def put_sdist(firstletter, package, filename):
-    """
-
-    Upload using:
-
-    curl -X PUT --data-binary @dist/mypackage-1.0.tar.gz http://localhost:8080/packages/source/m/mypackage/mypackage-1.0.tar.gz
+    """PUT a sdist package
 
     """
     app.config["pypi"].add_sdist(package, filename, bottle.request.body)
     return {"uploaded": "ok"}
 
-@app.route("/uploadpackage/<filename>", "POST")
-def post_sdist(filename):
-    """
-
-    POST using:
-
-    curl -X POST --data-binary @dist/mypackage-1.0.tar.gz http://localhost:8080/uploadpackage/mypackage-1.0.tar.gz
+@app.route("/uploadpackage/", "POST")
+def post_sdist():
+    """POST an sdist package
 
     """
     # TODO parse package versions properly, hopefully via distutils2 style library
     # Assume package in form <package>-<version>.tar.gz
+    filename = bottle.request.files.sdist.filename
     package = re.match(r"(?P<package>.*?)-.*?\..*", filename).groupdict()["package"]
     logging.debug("Parsed {!r} out of {!r}".format(package, filename))
-    return app.config["pypi"].add_sdist(package, filename, bottle.request.body)
+    app.config["pypi"].add_sdist(package, filename, bottle.request.files.sdist.file)
+    return {"uploaded": "ok"}
 
 @app.route("/requirements.txt", "POST")
 def POST_requirements_txt():
     """POST a requirements.txt to get the packages therein
 
-    Works best with:
-
-    pip freeze | curl  -X POST --data-binary @- http://localhost:8080/requirements.txt | python -m json.tool
-
-    or
-
-    curl -X POST --data-binary @/tmp/requirements.txt http://localhost:8080/requirements.txt | python -m json.tool
-
     """
-    return app.config["pypi"].cache_requirements_txt(bottle.request.body)
+    return app.config["pypi"].cache_requirements_txt(bottle.request.files.requirements.file)

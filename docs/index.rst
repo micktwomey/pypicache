@@ -56,11 +56,11 @@ You can then install the package from a completely local cache, without hitting 
 
 If you want to take a requirements.txt file and cache the packages it specifies you can POST the file::
 
-    pip freeze | curl  -X POST --data-binary @- http://localhost:8080/requirements.txt | python -m json.tool
+    pip freeze | curl -X POST -F requirements=@- http://localhost:8080/requirements.txt | python -m json.tool
 
 or::
 
-    curl -X POST --data-binary @/tmp/requirements.txt http://localhost:8080/requirements.txt | python -m json.tool
+    curl -X POST -F requirements=@requirements.txt http://localhost:8080/requirements.txt | python -m json.tool
 
 You can also upload packages directly, either into the normal PyPI package location via a PUT or POST it::
 
@@ -68,7 +68,7 @@ You can also upload packages directly, either into the normal PyPI package locat
 
 or::
 
-    curl -X POST --data-binary @dist/mypackage-1.0.tar.gz http://localhost:8080/uploadpackage/mypackage-1.0.tar.gz
+    curl -X POST -F sdist=@dist/mypackage-1.0.tar.gz  http://localhost:8080/uploadpackage/
 
 URLs
 ----
@@ -82,7 +82,9 @@ An enumeration of the current api:
 - GET /local/mypackage
    - Currently case sensitive
 
-- POST /uploadpackage/mypackage-1.0.tar.gz
+- POST /requirements.txt
+
+- POST /uploadpackage/
   - Applies simple logic to parse package name
   - Can't overwrite packages
 
