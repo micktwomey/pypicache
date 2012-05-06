@@ -17,10 +17,10 @@ init:
 # compatible (mind you, it'd fail anyway if it was importing a script).
 # Can work around this by using python -m instead.
 test:
-	PYTHONPATH=. python -m py.test --verbose --tb=short
+	PYTHONPATH=. python -m py.test --verbose
 
 coverage:
-	PYTHONPATH=. coverage run -m py.test --verbose --tb=short
+	PYTHONPATH=. coverage run -m py.test
 	coverage report --include 'pypicache*'
 	coverage html --include 'pypicache*' -d build/coverage
 
