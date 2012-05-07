@@ -68,6 +68,13 @@ class ServerTestCase(unittest.TestCase):
         self.assertEqual(args[:2], ("mypackage", "mypackage-1.0.tar.gz"))
         self.assertEqual(args[2].getvalue(), b"--package-data--")
 
+    def test_post_missing_sdist_data(self):
+        """Test a post with no sdist data
+
+        """
+        response = self.app.post("/uploadpackage/", status=400)
+        self.assertDictEqual(response.json, {"error": True, "message": "Missing sdist data."})
+
     def test_post_requirements_txt(self):
         self.mock_packagecache.cache_requirements_txt.return_value = {"processed": "requirements"}
         response = self.app.post("/requirements.txt",
@@ -76,3 +83,10 @@ class ServerTestCase(unittest.TestCase):
         self.assertDictEqual(response.json, {"processed": "requirements"})
         args, kwargs = self.mock_packagecache.cache_requirements_txt.call_args
         self.assertEqual(args[0].getvalue(), b"mypackage==1.0")
+
+    def test_post_no_requirements_txt(self):
+        """Test a post to requirements.txt without a upload_files
+
+        """
+        response = self.app.post("/requirements.txt", status=400)
+        self.assertDictEqual(response.json, {"error": True, "message": "Missing requirements data."})

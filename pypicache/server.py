@@ -70,6 +70,9 @@ def post_sdist():
     """
     # TODO parse package versions properly, hopefully via distutils2 style library
     # Assume package in form <package>-<version>.tar.gz
+    if "sdist" not in bottle.request.files:
+        bottle.response.status = 400
+        return {"error": True, "message": "Missing sdist data."}
     filename = bottle.request.files.sdist.filename
     package = re.match(r"(?P<package>.*?)-.*?\..*", filename).groupdict()["package"]
     logging.debug("Parsed {!r} out of {!r}".format(package, filename))
@@ -81,4 +84,7 @@ def POST_requirements_txt():
     """POST a requirements.txt to get the packages therein
 
     """
+    if "requirements" not in bottle.request.files:
+        bottle.response.status = 400
+        return {"error": True, "message": "Missing requirements data."}
     return app.config["pypi"].cache_requirements_txt(bottle.request.files.requirements.file)
