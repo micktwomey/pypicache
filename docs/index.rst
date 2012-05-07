@@ -62,13 +62,16 @@ or::
 
     curl -X POST -F requirements=@requirements.txt http://localhost:8080/requirements.txt | python -m json.tool
 
-You can also upload packages directly, either into the normal PyPI package location via a PUT or POST it::
+You can also upload packages directly, either into the normal PyPI package location via a POST::
 
-    curl -X PUT --data-binary @dist/mypackage-1.0.tar.gz http://localhost:8080/packages/source/m/mypackage/mypackage-1.0.tar.gz
 
-or::
 
     curl -X POST -F sdist=@dist/mypackage-1.0.tar.gz  http://localhost:8080/uploadpackage/
+
+..
+  or::
+
+    curl -X PUT --data-binary @dist/mypackage-1.0.tar.gz http://localhost:8080/packages/source/m/mypackage/mypackage-1.0.tar.gz
 
 URLs
 ----
@@ -90,8 +93,10 @@ An enumeration of the current api:
 
 - GET /packages/source/m/mypackage/mypackage-1.0.tar.gz
   - Checks PyPI if not present locally
-- PUT /packages/source/m/mypackage/mypackage-1.0.tar.gz
-  - Can't overwrite packages
+
+..
+  - PUT /packages/source/m/mypackage/mypackage-1.0.tar.gz
+    - Can't overwrite packages
 
 - GET /packages/2.7/m/mypackage/mypackage-1.0-py2.7.egg
   - not implemented

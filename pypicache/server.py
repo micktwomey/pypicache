@@ -1,90 +1,95 @@
 import logging
 import mimetypes
-import os
 import re
 
-import bottle
+from flask import (
+    abort,
+    Flask,
+    jsonify,
+    make_response,
+    render_template,
+    request,
+)
 
 from pypicache import cache
 
-# For the moment you have to set catchall to False to debug test failures.
-app = bottle.Bottle(catchall=True)
+app = Flask("pypicache")
 
-def make_app(package_cache):
+def configure_app(package_cache, debug=False, testing=False):
+    app.debug = debug
+    app.testing = testing
     app.config["pypi"] = package_cache
-    # Not 100% sure this is the best way to handle this.
-    bottle.TEMPLATE_PATH.append(os.path.join(os.path.dirname(__file__), "templates"))
     return app
 
 @app.route("/")
-@bottle.jinja2_view("index")
 def index():
-    return {}
+    return render_template("index.html")
 
-@app.route('/static/<path:path>')
-def callback(path):
-    root = os.path.join(os.path.dirname(__file__), "static")
-    return bottle.static_file(path, root=root)
-
-@app.route("/simple")
 @app.route("/simple/")
-@bottle.jinja2_view("simple")
 def simple_index():
     """The top level simple index page
 
     """
-    return {}
+    return render_template("simple.html")
 
-@app.route("/simple/<package>")
 @app.route("/simple/<package>/")
 def pypi_simple_package_info(package):
     return app.config["pypi"].pypi_get_simple_package_info(package)
 
-@app.route("/local/<package>")
 @app.route("/local/<package>/")
 def local_simple_package_info(package):
     return app.config["pypi"].local_get_simple_package_info(package)
 
-@app.route("/packages/source/<firstletter>/<package>/<filename>", "GET")
+@app.route("/packages/source/<firstletter>/<package>/<filename>", methods=["GET"])
 def get_sdist(firstletter, package, filename):
     try:
         content_type, _ = mimetypes.guess_type(filename)
         logging.debug("Setting mime type of {!r} to {!r}".format(filename, content_type))
-        bottle.response.content_type = content_type
-        return app.config["pypi"].get_sdist(package, filename)
+        response = make_response(app.config["pypi"].get_sdist(package, filename))
+        response.content_type = content_type
+        return response
     except cache.NotFound:
-        return bottle.abort(404)
+        return abort(404)
 
-@app.route("/packages/source/<firstletter>/<package>/<filename>", "PUT")
-def put_sdist(firstletter, package, filename):
-    """PUT a sdist package
+# @app.route("/packages/source/<firstletter>/<package>/<filename>", methods=["PUT"])
+# def put_sdist(firstletter, package, filename):
+#     """PUT a sdist package
 
-    """
-    app.config["pypi"].add_sdist(package, filename, bottle.request.body)
-    return {"uploaded": "ok"}
+#     """
+#     # Flask doesn't appear to support a PUT request with raw content
+#     # very well. Trying to figure out a magic combination to make it
+#     # work.
+#     print vars(request)
+#     # fp = StringIO(list(request.form)[0])
+#     assert request.data
+#     fp = StringIO(request.data)
+#     app.config["pypi"].add_sdist(package, filename, fp)
+#     return jsonify({"uploaded": "ok"})
 
-@app.route("/uploadpackage/", "POST")
-def post_sdist():
+@app.route("/uploadpackage/", methods=["POST"])
+def post_uploadpackage():
     """POST an sdist package
 
     """
     # TODO parse package versions properly, hopefully via distutils2 style library
     # Assume package in form <package>-<version>.tar.gz
-    if "sdist" not in bottle.request.files:
-        bottle.response.status = 400
-        return {"error": True, "message": "Missing sdist data."}
-    filename = bottle.request.files.sdist.filename
+    if "sdist" not in request.files:
+        response = jsonify({"error": True, "message": "Missing sdist data."})
+        response.status_code = 400
+        return response
+    filename = request.files["sdist"].filename
     package = re.match(r"(?P<package>.*?)-.*?\..*", filename).groupdict()["package"]
     logging.debug("Parsed {!r} out of {!r}".format(package, filename))
-    app.config["pypi"].add_sdist(package, filename, bottle.request.files.sdist.file)
-    return {"uploaded": "ok"}
+    app.config["pypi"].add_sdist(package, filename, request.files["sdist"].stream)
+    return jsonify({"uploaded": "ok"})
 
-@app.route("/requirements.txt", "POST")
+@app.route("/requirements.txt", methods=["POST"])
 def POST_requirements_txt():
     """POST a requirements.txt to get the packages therein
 
     """
-    if "requirements" not in bottle.request.files:
-        bottle.response.status = 400
-        return {"error": True, "message": "Missing requirements data."}
-    return app.config["pypi"].cache_requirements_txt(bottle.request.files.requirements.file)
+    if "requirements" not in request.files:
+        response = jsonify({"error": True, "message": "Missing requirements data."})
+        response.status_code = 400
+        return response
+    return jsonify(app.config["pypi"].cache_requirements_txt(request.files["requirements"].stream))
