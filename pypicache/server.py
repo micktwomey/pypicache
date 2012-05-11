@@ -11,14 +11,16 @@ from flask import (
     request,
 )
 
-from pypicache import cache
+from pypicache import exceptions
 
 app = Flask("pypicache")
 
-def configure_app(package_cache, debug=False, testing=False):
+def configure_app(pypi, package_store, package_cache, debug=False, testing=False):
     app.debug = debug
     app.testing = testing
-    app.config["pypi"] = package_cache
+    app.config["pypi"] = pypi
+    app.config["package_store"] = package_store
+    app.config["cache"] = package_cache
     return app
 
 @app.route("/")
@@ -34,21 +36,25 @@ def simple_index():
 
 @app.route("/simple/<package>/")
 def pypi_simple_package_info(package):
-    return app.config["pypi"].pypi_get_simple_package_info(package)
+    return app.config["pypi"].get_simple_package_info(package)
 
 @app.route("/local/<package>/")
 def local_simple_package_info(package):
-    return app.config["pypi"].local_get_simple_package_info(package)
+    sdists = list(app.config["package_store"].list_sdists(package))
+    return render_template("simple_package.html",
+        package=package,
+        sdists=sdists,
+    )
 
 @app.route("/packages/source/<firstletter>/<package>/<filename>", methods=["GET"])
 def get_sdist(firstletter, package, filename):
     try:
+        response = make_response(app.config["cache"].get_sdist(package, filename))
         content_type, _ = mimetypes.guess_type(filename)
         logging.debug("Setting mime type of {!r} to {!r}".format(filename, content_type))
-        response = make_response(app.config["pypi"].get_sdist(package, filename))
         response.content_type = content_type
         return response
-    except cache.NotFound:
+    except exceptions.NotFound:
         return abort(404)
 
 # @app.route("/packages/source/<firstletter>/<package>/<filename>", methods=["PUT"])
@@ -80,7 +86,7 @@ def post_uploadpackage():
     filename = request.files["sdist"].filename
     package = re.match(r"(?P<package>.*?)-.*?\..*", filename).groupdict()["package"]
     logging.debug("Parsed {!r} out of {!r}".format(package, filename))
-    app.config["pypi"].add_sdist(package, filename, request.files["sdist"].stream)
+    app.config["package_store"].add_sdist(package, filename, request.files["sdist"].stream)
     return jsonify({"uploaded": "ok"})
 
 @app.route("/requirements.txt", methods=["POST"])
@@ -92,4 +98,4 @@ def POST_requirements_txt():
         response = jsonify({"error": True, "message": "Missing requirements data."})
         response.status_code = 400
         return response
-    return jsonify(app.config["pypi"].cache_requirements_txt(request.files["requirements"].stream))
+    return jsonify(app.config["cache"].cache_requirements_txt(request.files["requirements"].stream))

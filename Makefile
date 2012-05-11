@@ -9,15 +9,16 @@ help:
 	@echo "  make runserver - runs a local server"
 	@echo "  make push - git push to origins"
 
+# If only we had a package cache :)
 init:
 	pip install -r requirements-develop.txt --use-mirrors
 
 # This is really weird, py.test adds bin/ to the pythonpath which causes
 # python 3 to fail, as bottle.py (the command line tool) isn't python 3
 # compatible (mind you, it'd fail anyway if it was importing a script).
-# Can work around this by using python -m instead.
+# Can work around this by using python -m instead. Or not use bottle
 test:
-	PYTHONPATH=. python -m py.test --verbose
+	PYTHONPATH=. python -m py.test --verbose -l
 
 coverage:
 	PYTHONPATH=. coverage run -m py.test

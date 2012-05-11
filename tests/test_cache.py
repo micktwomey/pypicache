@@ -3,15 +3,19 @@ import unittest
 import mock
 
 from pypicache import cache
+from pypicache import disk
+from pypicache import pypi
 
 class CacheTestCase(unittest.TestCase):
+    def setUp(self):
+        self.mock_pypi = mock.Mock(spec=pypi.PyPI)
+        self.mock_packages = mock.Mock(spec=disk.DiskPackageStore)
+        self.cache = cache.PackageCache(self.mock_packages, self.mock_pypi)
 
-    @mock.patch("pypicache.cache.xmlrpclib")
-    def test_pypi_get_versions(self, mock_xmlrpclib):
-        mock_proxy = mock.Mock()
-        mock_xmlrpclib.ServerProxy.return_value = mock_proxy
-        mock_proxy.package_releases.return_value = ["1.2", "1.3"]
-        c = cache.PackageCache(mock.sentinel.prefix)
-        self.assertListEqual(c.pypi_get_versions("fakepackage"), ["1.2", "1.3"])
-        mock_xmlrpclib.ServerProxy.assert_called_with("http://pypi.python.org/pypi")
-        mock_proxy.package_releases.assert_called_with("fakepackage", False)
+    @unittest.skip("TODO")
+    def test_get_sdist(self):
+        raise NotImplementedError()
+
+    @unittest.skip("TODO")
+    def test_cache_requirements_txt(self):
+        raise NotImplementedError()

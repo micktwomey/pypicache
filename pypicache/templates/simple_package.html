@@ -1,0 +1,13 @@
+<html>
+<head>
+<title>Links for {{package}}</title>
+</head>
+<body>
+<h1>Links for {{package}}</h1>
+
+{% for sdist in sdists %}
+<a href="/packages/source/{{sdist.firstletter}}/{{package}}/{{sdist.sdist}}#md5={{sdist.md5}}">{{sdist.sdist}}</a><br>
+{% endfor %}
+
+</body>
+</html>

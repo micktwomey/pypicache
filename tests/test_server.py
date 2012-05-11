@@ -5,12 +5,17 @@ import mock
 from webtest import TestApp
 
 from pypicache import cache
+from pypicache import disk
+from pypicache import exceptions
+from pypicache import pypi
 from pypicache import server
 
 class ServerTestCase(unittest.TestCase):
     def setUp(self):
         self.mock_packagecache = mock.Mock(spec=cache.PackageCache)
-        self.app = TestApp(server.configure_app(self.mock_packagecache, testing=True))
+        self.mock_packagestore = mock.Mock(spec=disk.DiskPackageStore)
+        self.mock_pypi = mock.Mock(spec=pypi.PyPI)
+        self.app = TestApp(server.configure_app(self.mock_pypi, self.mock_packagestore, self.mock_packagecache, testing=True))
 
     def test_index(self):
         response = self.app.get("/")
@@ -24,16 +29,21 @@ class ServerTestCase(unittest.TestCase):
         self.assertIn(b"simple", response.body)
 
     def test_simple_package(self):
-        self.mock_packagecache.pypi_get_simple_package_info.return_value = """<html><a href="mypackage">mypackage-1.0</a></html>"""
+        content = """<html><a href="mypackage">mypackage-1.0</a></html>"""
+        self.mock_pypi.get_simple_package_info.return_value = content
         response = self.app.get("/simple/mypackage/")
-        self.assertIn("mypackage-1.0", response)
-        self.mock_packagecache.pypi_get_simple_package_info.assert_called_with("mypackage")
+        self.assertEqual(response.body, content)
 
     def test_local_package(self):
-        self.mock_packagecache.local_get_simple_package_info.return_value = """<html><a href="mypackage">mypackage-1.0</a></html>"""
+        self.mock_packagestore.list_sdists.return_value = [dict(
+            package="mypackage",
+            firstletter="m",
+            sdist="mypackage-1.0.tar.gz",
+            md5="ahashabcdef"
+        )]
         response = self.app.get("/local/mypackage/")
-        self.assertIn("mypackage-1.0", response)
-        self.mock_packagecache.local_get_simple_package_info.assert_called_with("mypackage")
+        self.assertIn("""<a href="/packages/source/m/mypackage/mypackage-1.0.tar.gz#md5=ahashabcdef">mypackage-1.0.tar.gz</a>""", response.body)
+        self.mock_packagestore.list_sdists.assert_called_with("mypackage")
 
     def test_packages_source_sdist(self):
         self.mock_packagecache.get_sdist.return_value = "--package-data--"
@@ -45,7 +55,7 @@ class ServerTestCase(unittest.TestCase):
 
     def test_packages_source_notfound(self):
         def fail(*args, **kwargs):
-            raise cache.NotFound("Unknown package")
+            raise exceptions.NotFound("Unknown package")
         self.mock_packagecache.get_sdist.side_effect = fail
         self.app.get("/packages/source/m/mypackage/mypackage-1.1.tar.gz", status=404)
         self.mock_packagecache.get_sdist.assert_called_with("mypackage", "mypackage-1.1.tar.gz")
@@ -64,8 +74,8 @@ class ServerTestCase(unittest.TestCase):
             upload_files=[("sdist", "mypackage-1.0.tar.gz", b"--package-data--")]
         )
         self.assertDictEqual(response.json, {"uploaded": "ok"})
-        self.assertTrue(self.mock_packagecache.add_sdist.called)
-        args, kwargs = self.mock_packagecache.add_sdist.call_args
+        self.assertTrue(self.mock_packagestore.add_sdist.called)
+        args, kwargs = self.mock_packagestore.add_sdist.call_args
         self.assertEqual(args[:2], ("mypackage", "mypackage-1.0.tar.gz"))
         self.assertEqual(args[2].getvalue(), b"--package-data--")
 
