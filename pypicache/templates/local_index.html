@@ -1,0 +1,10 @@
+{% extends "base-simple.html" %}
+{% block title %}PyPI Cache Local Packages{% endblock %}
+{% block content %}
+<h1>PyPI Cache Local Packages</h1>
+
+{% for package in packages %}
+<p><a href="/local/{{package}}/">{{package}}</a></p>
+{% endfor %}
+
+{% endblock %}

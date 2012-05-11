@@ -38,6 +38,15 @@ def simple_index():
 def pypi_simple_package_info(package):
     return app.config["pypi"].get_simple_package_info(package)
 
+@app.route("/local/")
+def local_index():
+    """Top level of local packages
+
+    """
+    return render_template("local_index.html",
+        packages=list(app.config["package_store"].list_packages()),
+    )
+
 @app.route("/local/<package>/")
 def local_simple_package_info(package):
     sdists = list(app.config["package_store"].list_sdists(package))

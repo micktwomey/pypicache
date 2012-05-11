@@ -3,6 +3,7 @@
 """
 
 import hashlib
+from glob import glob
 import logging
 import os
 
@@ -33,10 +34,12 @@ class DiskPackageStore(object):
                 )
 
     def list_packages(self):
-        for root, dirs, files in os.walk(self.prefix):
-            for packagename in dirs:
-                yield packagename
-            break
+        path = os.path.join(self.prefix, "packages/source/?/*")
+        self.log.info("Listing packages in {}".format(path))
+        for packagename in sorted(glob(path)):
+            if not os.path.isdir(packagename):
+                continue
+            yield os.path.basename(packagename)
 
     def get_sdist(self, package, filename):
         path = self.get_sdist_path(package, filename)

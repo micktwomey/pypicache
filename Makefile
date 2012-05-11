@@ -1,9 +1,10 @@
-.PHONY: help init test coverage runserver docs push dist
+.PHONY: help init test integration-test coverage runserver docs push dist
 
 help:
 	@echo "make commands:"
 	@echo "  make init - setup dependencies (pip install)"
 	@echo "  make test - run unittests"
+	@echo "  make integration-test - run a local server and integration tests"
 	@echo "  make coverage - run tests and generate coverage report"
 	@echo "  make docs - build HTML docs"
 	@echo "  make runserver - runs a local server"
@@ -19,6 +20,9 @@ init:
 # Can work around this by using python -m instead. Or not use bottle
 test:
 	PYTHONPATH=. python -m py.test --verbose -l
+
+integration-test:
+	PYTHONPATH=. python -m py.test --verbose -l tests/integration_*.py
 
 coverage:
 	PYTHONPATH=. coverage run -m py.test

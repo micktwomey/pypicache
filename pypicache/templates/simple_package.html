@@ -1,13 +1,10 @@
-<html>
-<head>
-<title>Links for {{package}}</title>
-</head>
-<body>
+{% extends "base-simple.html" %}
+{% block title %}Links for {{package}}{% endblock %}
+{% block content %}
 <h1>Links for {{package}}</h1>
 
 {% for sdist in sdists %}
 <a href="/packages/source/{{sdist.firstletter}}/{{package}}/{{sdist.sdist}}#md5={{sdist.md5}}">{{sdist.sdist}}</a><br>
 {% endfor %}
 
-</body>
-</html>
+{% endblock %}
