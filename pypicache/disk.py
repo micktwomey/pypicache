@@ -46,7 +46,7 @@ class DiskPackageStore(object):
                 )
 
     def list_packages(self):
-        path = os.path.join(self.prefix, "packages/source/?/*")
+        path = os.path.join(self.prefix, "packages/?/*")
         self.log.info("Listing packages in {}".format(path))
         for packagename in sorted(glob(path)):
             if not os.path.isdir(packagename):
