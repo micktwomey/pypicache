@@ -14,22 +14,22 @@ class DiskPackageStore(object):
         self.log = logging.getLogger("pypicache.disk")
         self.prefix = prefix
 
-    def get_sdist_path(self, package, filename):
+    def get_file_path(self, package, filename):
         firstletter = package[0]
-        return os.path.join(self.prefix, "packages/source/{}/{}/{}".format(firstletter, package, filename))
+        return os.path.join(self.prefix, "packages/{}/{}/{}".format(firstletter, package, filename))
 
-    def list_sdists(self, package):
+    def list_files(self, package):
         firstletter = package[0]
-        prefix = os.path.join(self.prefix, "packages/source/{}/{}".format(firstletter, package))
+        prefix = os.path.join(self.prefix, "packages/{}/{}".format(firstletter, package))
         self.log.debug("Using package prefix {!r}".format(prefix))
         for root, dirs, files in os.walk(prefix, topdown=False):
-            self.log.info("Examining {} for sdists".format((root, dirs, files)))
+            self.log.info("Examining {} for files".format((root, dirs, files)))
             for filename in files:
                 abspath = os.path.join(root, filename)
                 yield dict(
                     package=package,
                     firstletter=firstletter,
-                    sdist=filename,
+                    filename=filename,
                     md5=hashlib.md5(open(abspath).read()).hexdigest()
                 )
 
@@ -41,15 +41,15 @@ class DiskPackageStore(object):
                 continue
             yield os.path.basename(packagename)
 
-    def get_sdist(self, package, filename):
-        path = self.get_sdist_path(package, filename)
+    def get_file(self, package, filename):
+        path = self.get_file_path(package, filename)
         try:
             return open(path, "rb")
         except IOError:
             raise exceptions.NotFound("Package {}: {} not found in {}".format(package, filename, path))
 
-    def add_sdist(self, package, filename, content):
-        path = self.get_sdist_path(package, filename)
+    def add_file(self, package, filename, content):
+        path = self.get_file_path(package, filename)
         if os.path.isfile(path):
             raise exceptions.NotOverwritingError("Not overwriting {}".format(path))
         prefix = os.path.dirname(path)

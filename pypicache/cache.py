@@ -14,23 +14,25 @@ class PackageCache(object):
         self.pypi = pypi
         self.package_store = package_store
 
-    def get_sdist(self, package, filename):
-        """Fetches a package's sdist tarball
+    def get_file(self, package, filename, python_version=None):
+        """Fetches a package file
 
         Attempts to use the local cache before falling back to PyPI.
 
-        :returns: sdist data
+        :returns: package file data
 
         - TODO: Change to returning a iterable
 
         """
+        def get():
+            return self.package_store.get_file(package, filename).read()
         try:
-            return self.package_store.get_sdist(package, filename).read()
+            return get()
         except exceptions.NotFound:
             # TODO change to iterating over a http response
-            content = self.pypi.get_sdist(package, filename)
-            self.package_store.add_sdist(package, filename, content)
-            return self.package_store.get_sdist(package, filename).read()
+            content = self.pypi.get_file(package, filename, python_version=python_version)
+            self.package_store.add_file(package, filename, content)
+            return get()
 
     def cache_requirements_txt(self, requirements_fp):
         """Take a requirements.txt file and cache packages
@@ -54,7 +56,7 @@ class PackageCache(object):
                 try:
                     for url in (url for url in self.pypi.get_urls(package, version) if url["packagetype"] == "sdist"):
                         self.log.debug("Looking at {!r}".format(url))
-                        self.get_sdist(package, url["filename"])
+                        self.get_file(package, url["filename"])
                         processing_info["cached"].append(url["filename"])
                 except exceptions.NotFound:
                     processing_info["failed"].append(line)

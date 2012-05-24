@@ -92,13 +92,16 @@ class PyPI(object):
         # self.log.debug("Found links {}".format(links))
         # return SIMPLE_PACKAGE_PAGE_TEMPLATE.format(package=package, links="\n".join(links))
 
-    def get_sdist(self, package, filename):
+    def get_file(self, package, filename, python_version=None):
         """
 
         :returns: package data
 
         """
-        uri = "{}packages/source/{}/{}/{}".format(self.pypi_server, package[0], package, filename)
+        if python_version is not None:
+            uri = "{}packages/{}/{}/{}/{}".format(self.pypi_server, python_version, package[0], package, filename)
+        else:
+            uri = "{}packages/source/{}/{}/{}".format(self.pypi_server, package[0], package, filename)
         self.log.debug("Fetching from {}".format(uri))
         r = get_uri(uri)
         return r.content

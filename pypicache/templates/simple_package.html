@@ -3,8 +3,8 @@
 {% block content %}
 <h1>Links for {{package}}</h1>
 
-{% for sdist in sdists %}
-<a href="/packages/source/{{sdist.firstletter}}/{{package}}/{{sdist.sdist}}#md5={{sdist.md5}}">{{sdist.sdist}}</a><br>
+{% for file in files %}
+<a href="/packages/{{package}}/{{file.filename}}#md5={{file.md5}}">{{file.filename}}</a><br>
 {% endfor %}
 
 {% endblock %}

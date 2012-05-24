@@ -1,5 +1,6 @@
 import unittest
 
+import logging
 import mock
 
 from webtest import TestApp
@@ -35,56 +36,61 @@ class ServerTestCase(unittest.TestCase):
         self.assertEqual(response.body, content)
 
     def test_local_package(self):
-        self.mock_packagestore.list_sdists.return_value = [dict(
+        self.mock_packagestore.list_files.return_value = [dict(
             package="mypackage",
             firstletter="m",
-            sdist="mypackage-1.0.tar.gz",
+            filename="mypackage-1.0.tar.gz",
             md5="ahashabcdef"
         )]
         response = self.app.get("/local/mypackage/")
-        self.assertIn("""<a href="/packages/source/m/mypackage/mypackage-1.0.tar.gz#md5=ahashabcdef">mypackage-1.0.tar.gz</a>""", response.body)
-        self.mock_packagestore.list_sdists.assert_called_with("mypackage")
+        self.assertIn("""<a href="/packages/mypackage/mypackage-1.0.tar.gz#md5=ahashabcdef">mypackage-1.0.tar.gz</a>""", response.body)
+        self.mock_packagestore.list_files.assert_called_with("mypackage")
 
     def test_packages_source_sdist(self):
-        self.mock_packagecache.get_sdist.return_value = "--package-data--"
-        response = self.app.get("/packages/source/m/mypackage/mypackage-1.0.tar.gz")
-        self.assertEqual("application/x-tar", response.headers["Content-Type"])
-        self.assertEqual(b"--package-data--", response.body)
+        for url in [
+            "/packages/source/m/mypackage/mypackage-1.0.tar.gz",
+            "/packages/mypackage/mypackage-1.0.tar.gz",
+        ]:
+            logging.info("Testing url {}".format(url))
+            self.mock_packagecache.get_file.return_value = "--package-data--"
+            response = self.app.get(url)
+            self.assertEqual("application/x-tar", response.headers["Content-Type"])
+            self.assertEqual(b"--package-data--", response.body)
 
-        self.mock_packagecache.get_sdist.assert_called_with("mypackage", "mypackage-1.0.tar.gz")
+            self.mock_packagecache.get_file.assert_called_with("mypackage", "mypackage-1.0.tar.gz", python_version=None)
 
     def test_packages_source_notfound(self):
         def fail(*args, **kwargs):
             raise exceptions.NotFound("Unknown package")
-        self.mock_packagecache.get_sdist.side_effect = fail
+        self.mock_packagecache.get_file.side_effect = fail
         self.app.get("/packages/source/m/mypackage/mypackage-1.1.tar.gz", status=404)
-        self.mock_packagecache.get_sdist.assert_called_with("mypackage", "mypackage-1.1.tar.gz")
+        self.mock_packagecache.get_file.assert_called_with("mypackage", "mypackage-1.1.tar.gz", python_version=None)
 
     @unittest.skip("Need to figure out PUT under flask")
-    def test_put_packages_source_sdist(self):
+    def test_put_package_file(self):
         response = self.app.put("/packages/source/m/mypackage/mypackage-1.0.tar.gz", "--package-data--")
         self.assertDictEqual(response.json, {"uploaded": "ok"})
-        self.assertTrue(self.mock_packagecache.add_sdist.called)
-        args, kwargs = self.mock_packagecache.add_sdist.call_args
+        self.assertTrue(self.mock_packagecache.add_file.called)
+        args, kwargs = self.mock_packagecache.add_file.call_args
         self.assertEqual(args[:2], ("mypackage", "mypackage-1.0.tar.gz"))
         self.assertEqual(args[2].getvalue(), b"--package-data--")
 
-    def test_post_sdist(self):
+    def test_post_packge_file(self):
         response = self.app.post("/uploadpackage/",
-            upload_files=[("sdist", "mypackage-1.0.tar.gz", b"--package-data--")]
+            upload_files=[("package", "mypackage-1.0.tar.gz", b"--package-data--")]
         )
         self.assertDictEqual(response.json, {"uploaded": "ok"})
-        self.assertTrue(self.mock_packagestore.add_sdist.called)
-        args, kwargs = self.mock_packagestore.add_sdist.call_args
+        self.assertTrue(self.mock_packagestore.add_file.called)
+        args, kwargs = self.mock_packagestore.add_file.call_args
         self.assertEqual(args[:2], ("mypackage", "mypackage-1.0.tar.gz"))
         self.assertEqual(args[2].getvalue(), b"--package-data--")
 
-    def test_post_missing_sdist_data(self):
-        """Test a post with no sdist data
+    def test_post_missing_package_data(self):
+        """Test a post with no pacakge data
 
         """
         response = self.app.post("/uploadpackage/", status=400)
-        self.assertDictEqual(response.json, {"error": True, "message": "Missing sdist data."})
+        self.assertDictEqual(response.json, {"error": True, "message": "Missing package data."})
 
     def test_post_requirements_txt(self):
         self.mock_packagecache.cache_requirements_txt.return_value = {"processed": "requirements"}
@@ -101,3 +107,11 @@ class ServerTestCase(unittest.TestCase):
         """
         response = self.app.post("/requirements.txt", status=400)
         self.assertDictEqual(response.json, {"error": True, "message": "Missing requirements data."})
+
+    def test_packages_bdist(self):
+        self.mock_packagecache.get_file.return_value = "--package-data--"
+        response = self.app.get("/packages/2.7/m/mypackage/mypackage-1.0-py2.7.egg")
+        self.assertEqual("application/zip", response.headers["Content-Type"])
+        self.assertEqual(b"--package-data--", response.body)
+
+        self.mock_packagecache.get_file.assert_called_with("mypackage", "mypackage-1.0-py2.7.egg", python_version="2.7")

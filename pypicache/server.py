@@ -49,17 +49,22 @@ def local_index():
 
 @app.route("/local/<package>/")
 def local_simple_package_info(package):
-    sdists = list(app.config["package_store"].list_sdists(package))
+    files = list(app.config["package_store"].list_files(package))
     return render_template("simple_package.html",
         package=package,
-        sdists=sdists,
+        files=files,
     )
 
+@app.route("/packages/<package>/<filename>", methods=["GET"])
+@app.route("/packages/<python_version>/<firstletter>/<package>/<filename>", methods=["GET"])
 @app.route("/packages/source/<firstletter>/<package>/<filename>", methods=["GET"])
-def get_sdist(firstletter, package, filename):
+def get_file(package, filename, python_version=None, firstletter=None):
+    logging.debug("Request to get package with: {} {} {} {}".format(firstletter, package, filename, python_version))
     try:
-        response = make_response(app.config["cache"].get_sdist(package, filename))
+        response = make_response(app.config["cache"].get_file(package, filename, python_version=python_version))
         content_type, _ = mimetypes.guess_type(filename)
+        if content_type is None and filename.endswith(".egg"):
+            content_type = "application/zip"
         logging.debug("Setting mime type of {!r} to {!r}".format(filename, content_type))
         response.content_type = content_type
         return response
@@ -83,19 +88,19 @@ def get_sdist(firstletter, package, filename):
 
 @app.route("/uploadpackage/", methods=["POST"])
 def post_uploadpackage():
-    """POST an sdist package
+    """POST a package
 
     """
     # TODO parse package versions properly, hopefully via distutils2 style library
     # Assume package in form <package>-<version>.tar.gz
-    if "sdist" not in request.files:
-        response = jsonify({"error": True, "message": "Missing sdist data."})
+    if "package" not in request.files:
+        response = jsonify({"error": True, "message": "Missing package data."})
         response.status_code = 400
         return response
-    filename = request.files["sdist"].filename
+    filename = request.files["package"].filename
     package = re.match(r"(?P<package>.*?)-.*?\..*", filename).groupdict()["package"]
     logging.debug("Parsed {!r} out of {!r}".format(package, filename))
-    app.config["package_store"].add_sdist(package, filename, request.files["sdist"].stream)
+    app.config["package_store"].add_file(package, filename, request.files["package"].stream)
     return jsonify({"uploaded": "ok"})
 
 @app.route("/requirements.txt", methods=["POST"])
