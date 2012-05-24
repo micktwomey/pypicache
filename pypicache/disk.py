@@ -62,7 +62,8 @@ class DiskPackageStore(object):
             # Try fishing for the file with different cases
             for my_package in self.list_packages():
                 if package.lower() == my_package.lower():
-                    for my_filename in self.list_files(my_package):
+                    for fileinfo in self.list_files(my_package):
+                        my_filename = fileinfo["filename"]
                         if my_filename.lower() == filename.lower():
                             return self.get_file(my_package, my_filename)
             raise exceptions.NotFound("Package {}: {} not found in {}".format(package, filename, path))
