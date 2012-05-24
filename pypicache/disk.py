@@ -76,4 +76,4 @@ class DiskPackageStore(object):
             self.log.debug("Making directories {}".format(prefix))
             os.makedirs(prefix)
         with open(path, "wb") as output:
-            output.write(content)
+            output.write(content.read())
