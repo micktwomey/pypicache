@@ -22,6 +22,18 @@ class DiskPackageStore(object):
         firstletter = package[0]
         prefix = os.path.join(self.prefix, "packages/{}/{}".format(firstletter, package))
         self.log.debug("Using package prefix {!r}".format(prefix))
+        # Try fishing for correct name
+        if not os.path.isdir(prefix):
+            self.log.info("Fishing for package matching {}".format(package))
+            g = None
+            for my_package in self.list_packages():
+                if my_package.lower() == package.lower():
+                    g = self.list_files(my_package)
+                    break
+            if g is not None:
+                for i in g:
+                    yield i
+                return
         for root, dirs, files in os.walk(prefix, topdown=False):
             self.log.info("Examining {} for files".format((root, dirs, files)))
             for filename in files:
@@ -46,6 +58,13 @@ class DiskPackageStore(object):
         try:
             return open(path, "rb")
         except IOError:
+            self.log.info("Fishing for package file matching {}: {}".format(package, filename))
+            # Try fishing for the file with different cases
+            for my_package in self.list_packages():
+                if package.lower() == my_package.lower():
+                    for my_filename in self.list_files(my_package):
+                        if my_filename.lower() == filename.lower():
+                            return self.get_file(my_package, my_filename)
             raise exceptions.NotFound("Package {}: {} not found in {}".format(package, filename, path))
 
     def add_file(self, package, filename, content):

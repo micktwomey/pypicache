@@ -48,8 +48,8 @@ class ServerTestCase(unittest.TestCase):
 
     def test_packages_source_sdist(self):
         for url in [
-            "/packages/source/m/mypackage/mypackage-1.0.tar.gz",
-            "/packages/mypackage/mypackage-1.0.tar.gz",
+            "/packages/source/M/MyPackage/MyPackage-1.0.tar.gz",
+            "/packages/MyPackage/MyPackage-1.0.tar.gz",
         ]:
             logging.info("Testing url {}".format(url))
             self.mock_packagecache.get_file.return_value = "--package-data--"
@@ -57,7 +57,7 @@ class ServerTestCase(unittest.TestCase):
             self.assertEqual("application/x-tar", response.headers["Content-Type"])
             self.assertEqual(b"--package-data--", response.body)
 
-            self.mock_packagecache.get_file.assert_called_with("mypackage", "mypackage-1.0.tar.gz", python_version=None)
+            self.mock_packagecache.get_file.assert_called_with("MyPackage", "MyPackage-1.0.tar.gz", python_version=None)
 
     def test_packages_source_notfound(self):
         def fail(*args, **kwargs):
