@@ -77,4 +77,7 @@ class DiskPackageStore(object):
             self.log.debug("Making directories {}".format(prefix))
             os.makedirs(prefix)
         with open(path, "wb") as output:
-            output.write(content.read())
+            # TODO this is working around a difference in file obj vs string somewhere
+            if hasattr(content, "read"):
+                content = content.read()
+            output.write(content)
