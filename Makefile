@@ -12,7 +12,7 @@ help:
 
 # If only we had a package cache :)
 init:
-	pip install -r requirements-develop.txt --use-mirrors
+	pip install -r dev-requirements.txt --use-mirrors
 
 # This is really weird, py.test adds bin/ to the pythonpath which causes
 # python 3 to fail, as bottle.py (the command line tool) isn't python 3
