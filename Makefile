@@ -1,4 +1,4 @@
-.PHONY: help init test integration-test coverage runserver docs push dist
+.PHONY: help init pip-review test integration-test coverage runserver docs push dist
 
 help:
 	@echo "make commands:"
@@ -12,12 +12,14 @@ help:
 
 # If only we had a package cache :)
 init:
-	pip install -r dev-requirements.txt --use-mirrors
+	pip install -r requirements.txt -r dev-requirements.txt --use-mirrors
 
-# This is really weird, py.test adds bin/ to the pythonpath which causes
-# python 3 to fail, as bottle.py (the command line tool) isn't python 3
-# compatible (mind you, it'd fail anyway if it was importing a script).
-# Can work around this by using python -m instead. Or not use bottle
+pip-review: init
+	pip-review
+
+pip-dump: init
+	pip-dump
+
 test:
 	PYTHONPATH=. python -m py.test --verbose -l
 
