@@ -9,6 +9,9 @@ import os
 
 from pypicache import exceptions
 
+def format_url(package, firstletter, filename, md5):
+    return "/packages/{package}/{filename}#md5={md5}".format(package=package, filename=filename, md5=md5)
+
 class DiskPackageStore(object):
     def __init__(self, prefix):
         self.log = logging.getLogger("pypicache.disk")
@@ -38,12 +41,14 @@ class DiskPackageStore(object):
             self.log.info("Examining {} for files".format((root, dirs, files)))
             for filename in files:
                 abspath = os.path.join(root, filename)
-                yield dict(
+                info = dict(
                     package=package,
                     firstletter=firstletter,
                     filename=filename,
-                    md5=hashlib.md5(open(abspath).read()).hexdigest()
+                    md5=hashlib.md5(open(abspath).read()).hexdigest(),
                 )
+                info["url"] = format_url(**info)
+                yield info
 
     def list_packages(self):
         path = os.path.join(self.prefix, "packages/?/*")

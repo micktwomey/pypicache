@@ -36,12 +36,14 @@ class ServerTestCase(unittest.TestCase):
         self.assertEqual(response.body, content)
 
     def test_local_package(self):
-        self.mock_packagestore.list_files.return_value = [dict(
+        info = dict(
             package="mypackage",
             firstletter="m",
             filename="mypackage-1.0.tar.gz",
             md5="ahashabcdef"
-        )]
+        )
+        info["url"] = disk.format_url(**info)
+        self.mock_packagestore.list_files.return_value = [info]
         response = self.app.get("/local/mypackage/")
         self.assertIn("""<a href="/packages/mypackage/mypackage-1.0.tar.gz#md5=ahashabcdef">mypackage-1.0.tar.gz</a>""", response.body)
         self.mock_packagestore.list_files.assert_called_with("mypackage")

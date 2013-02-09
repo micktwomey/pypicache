@@ -4,7 +4,7 @@
 <h1>Links for {{package}}</h1>
 
 {% for file in files %}
-<a href="/packages/{{file.package}}/{{file.filename}}#md5={{file.md5}}">{{file.filename}}</a><br>
+<a href="{{file.url}}">{{file.filename}}</a><br>
 {% endfor %}
 
 {% endblock %}

@@ -113,3 +113,13 @@ def POST_requirements_txt():
         response.status_code = 400
         return response
     return jsonify(app.config["cache"].cache_requirements_txt(request.files["requirements"].stream))
+
+@app.route("/regenerate_indexes", methods=["POST"])
+def regenerate_indexes():
+    """Forces regeneration of indexes
+
+    Currenlty applicable to amazon backend.
+
+    """
+    app.config["package_store"].regenerate_indexes()
+    return jsonify({"succes": True})

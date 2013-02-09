@@ -1,3 +1,4 @@
+boto==2.8.0
 certifi==0.0.8
 chardet==2.1.1
 distribute==0.6.34
