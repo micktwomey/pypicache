@@ -76,7 +76,11 @@ class PyPI(object):
             yield url
 
     def get_simple_package_info(self, package):
-        uri = "{}simple/{}/".format(self.pypi_server, package)
+        uri = "{}{}{}/".format(
+            self.pypi_server,
+            '' if 'simple.' in self.pypi_server else 'simple/',
+            package,
+        )
         r = get_uri(uri)
         return r.content
         # TODO WIP in progress, trying to reproduce a simple page with links only
