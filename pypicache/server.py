@@ -35,8 +35,9 @@ def simple_index():
     return render_template("simple.html")
 
 @app.route("/simple/<package>/")
-def pypi_simple_package_info(package):
-    return app.config["pypi"].get_simple_package_info(package)
+@app.route("/simple/<package>/<version>")
+def pypi_simple_package_info(package, version=''):
+    return app.config["pypi"].get_simple_package_info(package, version)
 
 @app.route("/local/")
 def local_index():
@@ -48,8 +49,14 @@ def local_index():
     )
 
 @app.route("/local/<package>/")
-def local_simple_package_info(package):
+@app.route("/local/<package>/<version>")
+def local_simple_package_info(package, version=None):
     files = list(app.config["package_store"].list_files(package))
+    if version:
+        files = [f for f in files
+                 if f['filename'].endswith('%s.tar.gz' % version)]
+    if not files:
+        return abort(404) 
     return render_template("simple_package.html",
         package=package,
         files=files,

@@ -75,11 +75,12 @@ class PyPI(object):
         for url in json.loads(r.content)["urls"]:
             yield url
 
-    def get_simple_package_info(self, package):
-        uri = "{}{}{}/".format(
+    def get_simple_package_info(self, package, version=''):
+        uri = "{}{}{}/{}".format(
             self.pypi_server,
             '' if 'simple.' in self.pypi_server else 'simple/',
             package,
+            version,
         )
         r = get_uri(uri)
         return r.content
