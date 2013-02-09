@@ -106,7 +106,7 @@ def post_uploadpackage():
         response.status_code = 400
         return response
     filename = request.files[fileparam].filename
-    package = re.match(r"(?P<package>.*?)-.*?\..*", filename).groupdict()["package"]
+    package = re.match(r"(?P<package>(?:[^-]|-[^0-9])*)-[0-9].*\..*", filename).groupdict()["package"]
     logging.debug("Parsed {!r} out of {!r}".format(package, filename))
     app.config["package_store"].add_file(package, filename, request.files[fileparam].stream)
     return jsonify({"uploaded": "ok"})
