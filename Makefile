@@ -38,7 +38,7 @@ runserver:
 	PYTHONPATH=. python -m pypicache.main --debug --reload /tmp/pypicache
 
 push:
-	git push origin
+	git push origin master
 	git push github master
 
 dist:
