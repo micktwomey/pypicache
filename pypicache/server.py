@@ -100,14 +100,15 @@ def post_uploadpackage():
     """
     # TODO parse package versions properly, hopefully via distutils2 style library
     # Assume package in form <package>-<version>.tar.gz
-    if "package" not in request.files:
+    fileparam = "sdist"
+    if fileparam not in request.files:
         response = jsonify({"error": True, "message": "Missing package data."})
         response.status_code = 400
         return response
-    filename = request.files["package"].filename
+    filename = request.files[fileparam].filename
     package = re.match(r"(?P<package>.*?)-.*?\..*", filename).groupdict()["package"]
     logging.debug("Parsed {!r} out of {!r}".format(package, filename))
-    app.config["package_store"].add_file(package, filename, request.files["package"].stream)
+    app.config["package_store"].add_file(package, filename, request.files[fileparam].stream)
     return jsonify({"uploaded": "ok"})
 
 @app.route("/requirements.txt", methods=["POST"])
