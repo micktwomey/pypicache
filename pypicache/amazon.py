@@ -93,10 +93,37 @@ class AmazonPackageStore(object):
         for package, files in sorted(per_package_index.iteritems()):
             top_index.append("""<p><a href="packages/{}/{}">{}</a></p>""".format(package[0], package, package))
             package_html = "\n".join(files + ["</body></html"])
-            filename = "packages/{}/{}/index.html".format(package[0], package)
-            self.log.debug("{}:\n{}".format(filename, package_html))
-            self.bucket.new_key(filename).set_contents_from_string(package_html, policy="public-read", reduced_redundancy=True, headers=html_content_type)
+            for filename in [
+                "packages/{}/{}/index.html".format(package[0], package),
+                "{}/index.html".format(package),
+            ]:
+                self.log.debug("{}:\n{}".format(filename, package_html))
+                self.bucket.new_key(filename).set_contents_from_string(package_html, policy="public-read", reduced_redundancy=True, headers=html_content_type)
 
         index_html = "\n".join(top_index + ["</body></html"])
         self.log.debug("index.html:\n{}".format(index_html))
         self.bucket.new_key("index.html").set_contents_from_string(index_html, policy="public-read", reduced_redundancy=True, headers=html_content_type)
+
+    def sort_files(self):
+        """Hack to sort out misnamed packages
+
+        If you've been using a disk based package store on osx then
+        you'll encounter mixed case issues.
+
+        This walks the S3 repository and copies keys to their correct
+        name, and then removes the old key.
+
+        """
+        for package, filename, key in self._list_all_files():
+            if filename.endswith("html"):
+                continue
+            # print package, filename, key, key.key
+            expected_key = "packages/{}/{}/{}".format(package[0], package, filename)
+            if expected_key != key.key:
+                self.log.info("Copying {!r} to {!r}".format(key.key, expected_key))
+                key.copy(self.bucket, expected_key, reduced_redundancy=True, preserve_acl=True)
+                new_key = self.bucket.get_key(expected_key)
+                self.log.info("Got new key {!r}".format(new_key))
+                assert new_key is not None
+                self.log.info("Deleting old key {!r}".format(key))
+                key.delete()

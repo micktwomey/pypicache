@@ -123,3 +123,8 @@ def regenerate_indexes():
     """
     app.config["package_store"].regenerate_indexes()
     return jsonify({"succes": True})
+
+@app.route("/sort_files", methods=["POST"])
+def sort_files():
+    app.config["package_store"].sort_files()
+    return jsonify({"succes": True})
