@@ -26,8 +26,8 @@ def main():
         format="%(asctime)s [%(levelname)s] [%(processName)s-%(threadName)s] [%(name)s] [%(filename)s:%(lineno)d] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S%z"
     )
-    logging.info("Debugging: {!r}".format(args.debug))
-    logging.info("Reloading: {!r}".format(args.reload))
+    logging.info("Debugging: {0!r}".format(args.debug))
+    logging.info("Reloading: {0!r}".format(args.reload))
 
     pypi_server = pypi.PyPI()
     package_store = disk.DiskPackageStore(args.prefix)
