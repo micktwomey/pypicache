@@ -51,7 +51,7 @@ class ServerTestCase(unittest.TestCase):
             "/packages/source/M/MyPackage/MyPackage-1.0.tar.gz",
             "/packages/MyPackage/MyPackage-1.0.tar.gz",
         ]:
-            logging.info("Testing url {}".format(url))
+            logging.info("Testing url {0}".format(url))
             self.mock_packagecache.get_file.return_value = "--package-data--"
             response = self.app.get(url)
             self.assertEqual("application/x-tar", response.headers["Content-Type"])

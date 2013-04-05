@@ -8,4 +8,10 @@ setup(
     author_email='mick@twomeylee.name',
     url='http://readthedocs.org/projects/pypicache/',
     packages=['pypicache'],
+    package_data={
+        'pypicache': [
+            'static/*/*',
+            'templates/*.html',
+        ]
+    }
 )

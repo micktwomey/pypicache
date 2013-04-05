@@ -24,9 +24,9 @@ def get_uri(uri):
     """
     response = requests.get(uri)
     if response.status_code == 404:
-        raise exceptions.NotFound("Can't locate {}: {}".format(uri, response))
+        raise exceptions.NotFound("Can't locate {0}: {1}".format(uri, response))
     elif response.status_code != 200:
-        raise exceptions.RemoteError("Unexpected response from {}: {}".format(uri, response))
+        raise exceptions.RemoteError("Unexpected response from {0}: {1}".format(uri, response))
     return response
 
 class PyPI(object):
@@ -39,7 +39,7 @@ class PyPI(object):
             pypi_server = pypi_server + "/"
         self.pypi_server = pypi_server
         # Certain operations aren't available via the JSON api (well, at least obviously)
-        self.xmlrpc_client = xmlrpclib.ServerProxy("{}pypi".format(self.pypi_server))
+        self.xmlrpc_client = xmlrpclib.ServerProxy("{0}pypi".format(self.pypi_server))
 
     def get_versions(self, package, show_hidden=False):
         """Returns a list of available versions for a package
@@ -53,7 +53,7 @@ class PyPI(object):
 
         """
         versions = self.xmlrpc_client.package_releases(package, show_hidden)
-        self.log.debug("Got versions {} for package {!r}".format(versions, package))
+        self.log.debug("Got versions {0} for package {1!r}".format(versions, package))
         return versions
 
     def get_urls(self, package, version):
@@ -70,26 +70,26 @@ class PyPI(object):
             package=package,
             version=version,
         )
-        self.log.info("Fetching JSON info from {}".format(uri))
+        self.log.info("Fetching JSON info from {0}".format(uri))
         r = get_uri(uri)
         for url in json.loads(r.content)["urls"]:
             yield url
 
     def get_simple_package_info(self, package):
-        uri = "{}simple/{}/".format(self.pypi_server, package)
+        uri = "{0}simple/{1}/".format(self.pypi_server, package)
         r = get_uri(uri)
         return r.content
         # TODO WIP in progress, trying to reproduce a simple page with links only
         # Better still to rewrite using local urls
-        # self.log.info("Checking PyPI for links to {}".format(package))
+        # self.log.info("Checking PyPI for links to {0}".format(package))
         # links = []
         # for version in self.pypi_get_versions(package):
-        #     self.log.debug("Found package {} version {}".format(package, version))
+        #     self.log.debug("Found package {0} version {1}".format(package, version))
         #     for url in self.pypi_get_sdist_urls(package, version):
-        #         self.log.debug("Found link {!r}".format(url))
+        #         self.log.debug("Found link {0!r}".format(url))
         #         links.append("""<a href="{url}#md5={md5_digest}">{filename}</a>""".format(**url))
 
-        # self.log.debug("Found links {}".format(links))
+        # self.log.debug("Found links {0}".format(links))
         # return SIMPLE_PACKAGE_PAGE_TEMPLATE.format(package=package, links="\n".join(links))
 
     def get_file(self, package, filename, python_version=None):
@@ -99,9 +99,9 @@ class PyPI(object):
 
         """
         if python_version is not None:
-            uri = "{}packages/{}/{}/{}/{}".format(self.pypi_server, python_version, package[0], package, filename)
+            uri = "{0}packages/{1}/{2}/{3}/{4}".format(self.pypi_server, python_version, package[0], package, filename)
         else:
-            uri = "{}packages/source/{}/{}/{}".format(self.pypi_server, package[0], package, filename)
-        self.log.debug("Fetching from {}".format(uri))
+            uri = "{0}packages/source/{1}/{2}/{3}".format(self.pypi_server, package[0], package, filename)
+        self.log.debug("Fetching from {0}".format(uri))
         r = get_uri(uri)
         return r.content

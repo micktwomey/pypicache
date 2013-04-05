@@ -13,7 +13,7 @@ def main():
     )
     parser.add_argument("prefix", help="Package prefix, e.g. /tmp/packages")
     parser.add_argument("--address", default="0.0.0.0", help="Address to bind to.")
-    parser.add_argument("--port", default=8080, help="Port to listent on.")
+    parser.add_argument("--port", default=8080, type=int, help="Port to listen on.")
     parser.add_argument("--debug", default=False, action="store_true", help="Turn on debugging logging and output.")
     parser.add_argument("--reload", default=False, action="store_true", help="Turn on automatic reloading on code changes.")
     parser.add_argument("--processes", default=1, type=int, help="Number of processes to run")
@@ -26,8 +26,8 @@ def main():
         format="%(asctime)s [%(levelname)s] [%(processName)s-%(threadName)s] [%(name)s] [%(filename)s:%(lineno)d] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S%z"
     )
-    logging.info("Debugging: {!r}".format(args.debug))
-    logging.info("Reloading: {!r}".format(args.reload))
+    logging.info("Debugging: {0!r}".format(args.debug))
+    logging.info("Reloading: {0!r}".format(args.reload))
 
     pypi_server = pypi.PyPI()
     package_store = disk.DiskPackageStore(args.prefix)

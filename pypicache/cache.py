@@ -50,17 +50,17 @@ class PackageCache(object):
             "failed": [],
         }
         for line in (line.strip() for line in requirements_fp):
-            self.log.debug("Examining requirement {!r}".format(line))
+            self.log.debug("Examining requirement {0!r}".format(line))
             if "==" in line:
                 package, version = line.split("==")
                 try:
                     for url in (url for url in self.pypi.get_urls(package, version) if url["packagetype"] == "sdist"):
-                        self.log.debug("Looking at {!r}".format(url))
+                        self.log.debug("Looking at {0!r}".format(url))
                         self.get_file(package, url["filename"])
                         processing_info["cached"].append(url["filename"])
                 except exceptions.NotFound:
                     processing_info["failed"].append(line)
             else:
-                self.log.debug("Don't know how to handle {!r}".format(line))
+                self.log.debug("Don't know how to handle {0!r}".format(line))
                 processing_info["unparseable"].append(line)
         return processing_info

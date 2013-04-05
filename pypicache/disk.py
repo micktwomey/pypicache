@@ -16,15 +16,15 @@ class DiskPackageStore(object):
 
     def get_file_path(self, package, filename):
         firstletter = package[0]
-        return os.path.join(self.prefix, "packages/{}/{}/{}".format(firstletter, package, filename))
+        return os.path.join(self.prefix, "packages/{0}/{1}/{2}".format(firstletter, package, filename))
 
     def list_files(self, package):
         firstletter = package[0]
-        prefix = os.path.join(self.prefix, "packages/{}/{}".format(firstletter, package))
-        self.log.debug("Using package prefix {!r}".format(prefix))
+        prefix = os.path.join(self.prefix, "packages/{0}/{1}".format(firstletter, package))
+        self.log.debug("Using package prefix {0!r}".format(prefix))
         # Try fishing for correct name
         if not os.path.isdir(prefix):
-            self.log.info("Fishing for package matching {}".format(package))
+            self.log.info("Fishing for package matching {0}".format(package))
             g = None
             for my_package in self.list_packages():
                 if my_package.lower() == package.lower():
@@ -35,7 +35,7 @@ class DiskPackageStore(object):
                     yield i
                 return
         for root, dirs, files in os.walk(prefix, topdown=False):
-            self.log.info("Examining {} for files".format((root, dirs, files)))
+            self.log.info("Examining {0} for files".format((root, dirs, files)))
             for filename in files:
                 abspath = os.path.join(root, filename)
                 yield dict(
@@ -47,7 +47,7 @@ class DiskPackageStore(object):
 
     def list_packages(self):
         path = os.path.join(self.prefix, "packages/?/*")
-        self.log.info("Listing packages in {}".format(path))
+        self.log.info("Listing packages in {0}".format(path))
         for packagename in sorted(glob(path)):
             if not os.path.isdir(packagename):
                 continue
@@ -58,7 +58,7 @@ class DiskPackageStore(object):
         try:
             return open(path, "rb")
         except IOError:
-            self.log.info("Fishing for package file matching {}: {}".format(package, filename))
+            self.log.info("Fishing for package file matching {0}: {1}".format(package, filename))
             # Try fishing for the file with different cases
             for my_package in self.list_packages():
                 if package.lower() == my_package.lower():
@@ -66,15 +66,15 @@ class DiskPackageStore(object):
                         my_filename = fileinfo["filename"]
                         if my_filename.lower() == filename.lower():
                             return self.get_file(my_package, my_filename)
-            raise exceptions.NotFound("Package {}: {} not found in {}".format(package, filename, path))
+            raise exceptions.NotFound("Package {0}: {1} not found in {2}".format(package, filename, path))
 
     def add_file(self, package, filename, content):
         path = self.get_file_path(package, filename)
         if os.path.isfile(path):
-            raise exceptions.NotOverwritingError("Not overwriting {}".format(path))
+            raise exceptions.NotOverwritingError("Not overwriting {0}".format(path))
         prefix = os.path.dirname(path)
         if not os.path.isdir(prefix):
-            self.log.debug("Making directories {}".format(prefix))
+            self.log.debug("Making directories {0}".format(prefix))
             os.makedirs(prefix)
         with open(path, "wb") as output:
             # TODO this is working around a difference in file obj vs string somewhere
