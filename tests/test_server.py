@@ -66,14 +66,14 @@ class ServerTestCase(unittest.TestCase):
         self.app.get("/packages/source/m/mypackage/mypackage-1.1.tar.gz", status=404)
         self.mock_packagecache.get_file.assert_called_with("mypackage", "mypackage-1.1.tar.gz", python_version=None)
 
-    # @unittest.skip("Need to figure out PUT under flask")
-    # def test_put_package_file(self):
-    #     response = self.app.put("/packages/source/m/mypackage/mypackage-1.0.tar.gz", "--package-data--")
-    #     self.assertDictEqual(response.json, {"uploaded": "ok"})
-    #     self.assertTrue(self.mock_packagecache.add_file.called)
-    #     args, kwargs = self.mock_packagecache.add_file.call_args
-    #     self.assertEqual(args[:2], ("mypackage", "mypackage-1.0.tar.gz"))
-    #     self.assertEqual(args[2].getvalue(), b"--package-data--")
+    @unittest.skip("Need to figure out PUT under flask")
+    def test_put_package_file(self):
+        response = self.app.put("/packages/source/m/mypackage/mypackage-1.0.tar.gz", "--package-data--")
+        self.assertDictEqual(response.json, {"uploaded": "ok"})
+        self.assertTrue(self.mock_packagecache.add_file.called)
+        args, kwargs = self.mock_packagecache.add_file.call_args
+        self.assertEqual(args[:2], ("mypackage", "mypackage-1.0.tar.gz"))
+        self.assertEqual(args[2].getvalue(), b"--package-data--")
 
     def test_post_packge_file(self):
         response = self.app.post("/uploadpackage/",

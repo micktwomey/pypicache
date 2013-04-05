@@ -12,10 +12,10 @@ class CacheTestCase(unittest.TestCase):
         self.mock_packages = mock.Mock(spec=disk.DiskPackageStore)
         self.cache = cache.PackageCache(self.mock_packages, self.mock_pypi)
 
-    # @unittest.skip("TODO")
-    # def test_get_sdist(self):
-    #     raise NotImplementedError()
+    @unittest.skip("TODO")
+    def test_get_sdist(self):
+        raise NotImplementedError()
 
-    # @unittest.skip("TODO")
-    # def test_cache_requirements_txt(self):
-    #     raise NotImplementedError()
+    @unittest.skip("TODO")
+    def test_cache_requirements_txt(self):
+        raise NotImplementedError()
