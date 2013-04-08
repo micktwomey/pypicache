@@ -26,8 +26,10 @@ class DiskPackageStore(object):
         if not os.path.isdir(prefix):
             self.log.info("Fishing for package matching {0}".format(package))
             g = None
+            def normalize(package_name):
+                return package_name.lower().replace('-', '_')
             for my_package in self.list_packages():
-                if my_package.lower() == package.lower():
+                if normalize(my_package) == normalize(package):
                     g = self.list_files(my_package)
                     break
             if g is not None:

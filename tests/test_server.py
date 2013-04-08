@@ -77,7 +77,7 @@ class ServerTestCase(unittest.TestCase):
 
     def test_post_packge_file(self):
         response = self.app.post("/uploadpackage/",
-            upload_files=[("package", "mypackage-1.0.tar.gz", b"--package-data--")]
+            upload_files=[("sdist", "mypackage-1.0.tar.gz", b"--package-data--")]
         )
         self.assertDictEqual(response.json, {"uploaded": "ok"})
         self.assertTrue(self.mock_packagestore.add_file.called)

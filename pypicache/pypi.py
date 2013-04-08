@@ -75,8 +75,12 @@ class PyPI(object):
         for url in json.loads(r.content)["urls"]:
             yield url
 
-    def get_simple_package_info(self, package):
-        uri = "{0}simple/{1}/".format(self.pypi_server, package)
+    def get_simple_package_info(self, package, version=''):
+        if "simple." in self.pypi_server:
+            simple = ""
+        else:
+            simple = "simple/"
+        uri = "{0}{1}{2}/{3}".format(self.pypi_server, simple, package, version)
         r = get_uri(uri)
         return r.content
         # TODO WIP in progress, trying to reproduce a simple page with links only

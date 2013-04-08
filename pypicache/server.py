@@ -35,8 +35,9 @@ def simple_index():
     return render_template("simple.html")
 
 @app.route("/simple/<package>/")
-def pypi_simple_package_info(package):
-    return app.config["pypi"].get_simple_package_info(package)
+@app.route("/simple/<package>/<version>")
+def pypi_simple_package_info(package, version=''):
+    return app.config["pypi"].get_simple_package_info(package, version)
 
 @app.route("/local/")
 def local_index():
@@ -48,8 +49,14 @@ def local_index():
     )
 
 @app.route("/local/<package>/")
-def local_simple_package_info(package):
+@app.route("/local/<package>/<version>")
+def local_simple_package_info(package, version=None):
     files = list(app.config["package_store"].list_files(package))
+    if version:
+        files = [f for f in files
+                 if f['filename'].endswith('%s.tar.gz' % version)]
+    if not files:
+        return abort(404)
     return render_template("simple_package.html",
         package=package,
         files=files,
@@ -93,14 +100,15 @@ def post_uploadpackage():
     """
     # TODO parse package versions properly, hopefully via distutils2 style library
     # Assume package in form <package>-<version>.tar.gz
-    if "package" not in request.files:
+    fileparam = "sdist"
+    if fileparam not in request.files:
         response = jsonify({"error": True, "message": "Missing package data."})
         response.status_code = 400
         return response
-    filename = request.files["package"].filename
-    package = re.match(r"(?P<package>.*?)-.*?\..*", filename).groupdict()["package"]
+    filename = request.files[fileparam].filename
+    package = re.match(r"(?P<package>(?:[^-]|-[^0-9])*)-[0-9].*\..*", filename).groupdict()["package"]
     logging.debug("Parsed {0!r} out of {1!r}".format(package, filename))
-    app.config["package_store"].add_file(package, filename, request.files["package"].stream)
+    app.config["package_store"].add_file(package, filename, request.files[fileparam].stream)
     return jsonify({"uploaded": "ok"})
 
 @app.route("/requirements.txt", methods=["POST"])
