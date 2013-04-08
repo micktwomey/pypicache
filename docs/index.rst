@@ -31,9 +31,13 @@ A possible day to day workflow could involve a pypicache server running on devel
 Installation
 ------------
 
-Installation follows normal python package installation, I recommend pip::
+Currently this is only available as a development project in bitbucket: https://bitbucket.org/micktwomey/pypicache/
 
-    pip install pypicache
+To install::
+
+  pip install -e git+git@bitbucket.org:micktwomey/pypicache.git#egg=pypicache
+  cd src/pypicache
+  pip install -r requirements.txt
 
 Usage
 -----
