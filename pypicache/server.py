@@ -50,7 +50,7 @@ def local_index():
 
 @app.route("/local/<package>/")
 @app.route("/local/<package>/<version>")
-def local_simple_package_info(package, version=None):
+def local_simple_package_info(package, version=''):
     files = list(app.config["package_store"].list_files(package))
     if version:
         files = [f for f in files
