@@ -56,7 +56,7 @@ def local_simple_package_info(package, version=None):
         files = [f for f in files
                  if f['filename'].endswith('%s.tar.gz' % version)]
     if not files:
-        return abort(404)
+        return app.config["pypi"].get_simple_package_info(package, version)
     return render_template("simple_package.html",
         package=package,
         files=files,
