@@ -6,6 +6,7 @@ import hashlib
 from glob import glob
 import logging
 import os
+import re
 
 from pypicache import exceptions
 
@@ -72,8 +73,9 @@ class DiskPackageStore(object):
 
     def add_file(self, package, filename, content):
         path = self.get_file_path(package, filename)
-        if os.path.isfile(path):
-            raise exceptions.NotOverwritingError("Not overwriting {0}".format(path))
+        if os.path.isfile(path):           
+            if not re.search(r'-(dev|SNAPSHOT)\.(zip|tar.gz|tar.bz2)$', filenamedev):
+                raise exceptions.NotOverwritingError("Not overwriting {0}".format(path))
         prefix = os.path.dirname(path)
         if not os.path.isdir(prefix):
             self.log.debug("Making directories {0}".format(prefix))
