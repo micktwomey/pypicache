@@ -74,7 +74,7 @@ class DiskPackageStore(object):
     def add_file(self, package, filename, content):
         path = self.get_file_path(package, filename)
         if os.path.isfile(path):           
-            if not re.search(r'-(dev|SNAPSHOT)\.(zip|tar.gz|tar.bz2)$', filenamedev):
+            if not re.search(r'-(dev|SNAPSHOT)\.(zip|tar.gz|tar.bz2)$', filename):
                 raise exceptions.NotOverwritingError("Not overwriting {0}".format(path))
         prefix = os.path.dirname(path)
         if not os.path.isdir(prefix):
