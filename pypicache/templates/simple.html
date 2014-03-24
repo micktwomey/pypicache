@@ -6,4 +6,10 @@
 <pre>pip install -i http://localhost:8080/simple</pre>
 <p>or</p>
 <pre>easy_install -i http://localhost:8080/simple</pre>
+<h2>Package Index</h2>
+<ul>
+{% for package in packages %}
+  <li><a href="./{{package}}">{{package}}</a></li>
+{% endfor %}
+</ul>
 {% endblock %}
