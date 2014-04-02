@@ -32,7 +32,7 @@ def simple_index():
     """The top level simple index page
 
     """
-    return render_template("simple.html")
+    return render_template("simple.html", packages=app.config["package_store"].list_packages())
 
 @app.route("/simple/<package>/")
 @app.route("/simple/<package>/<version>")
