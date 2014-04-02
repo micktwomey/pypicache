@@ -17,6 +17,7 @@ def main():
     parser.add_argument("--debug", default=False, action="store_true", help="Turn on debugging logging and output.")
     parser.add_argument("--reload", default=False, action="store_true", help="Turn on automatic reloading on code changes.")
     parser.add_argument("--processes", default=1, type=int, help="Number of processes to run")
+    parser.add_argument("--upstream", default="http://pypi.python.org/", help="Upstream package server to use")
     args = parser.parse_args()
 
     loglevel = logging.DEBUG if args.debug else logging.INFO
@@ -29,7 +30,7 @@ def main():
     logging.info("Debugging: {0!r}".format(args.debug))
     logging.info("Reloading: {0!r}".format(args.reload))
 
-    pypi_server = pypi.PyPI()
+    pypi_server = pypi.PyPI(pypi_server=args.upstream)
     package_store = disk.DiskPackageStore(args.prefix)
     package_cache = cache.PackageCache(package_store, pypi_server)
     app = server.configure_app(pypi_server, package_store, package_cache, debug=args.debug)
